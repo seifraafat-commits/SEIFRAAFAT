@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seif Ed Raafat — Video Editor & Motion Designer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #000000;
+      --accent-yellow: #F59E0B;
+      --accent-yellow-hover: #D97706;
+      --text-main: #FFFFFF;
+      --text-muted: #D1D5DB;
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+    }
+
+    body {
+      width: 100%;
+      height: 480vh;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Fixed Background Canvas */
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000000;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Subtle Readability Vignette Overlay */
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.55) 100%),
+                  linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.6) 100%);
+    }
+
+    /* Top Fixed Header */
+    .top-bar {
+      position: fixed;
+      top: 1.5rem;
+      left: 0;
+      width: 100%;
+      padding: 0 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      pointer-events: auto;
+    }
+
+    .badge-open {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1.1rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #F3F4F6;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+
+    .dot-green {
+      width: 8px;
+      height: 8px;
+      background-color: #10B981;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #10B981;
+      animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.75; }
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.3rem;
+      background: var(--accent-yellow);
+      color: #000000;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.88rem;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-download:hover {
+      background: #FBBF24;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+    }
+
+    /* Fixed Navigation Bar */
+    .bottom-nav-container {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      pointer-events: auto;
+    }
+
+    .bottom-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 100px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.5rem 1.1rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #D1D5DB;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .nav-item svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-item:hover {
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .nav-item.active {
+      background: #FFFFFF;
+      color: #000000;
+      font-weight: 600;
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.3);
+    }
+    .nav-item.active svg {
+      stroke: #000000;
+    }
+
+    /* Main Container - Direct Content Overlay */
+    .main-container {
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 6rem 1.25rem 8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5rem;
+    }
+
+    .content-block {
+      width: 100%;
+      scroll-margin-top: 5rem;
+    }
+
+    /* Text readability directly on background */
+    .hero-title, .section-heading-yellow, .subtitle-yellow, .about-text, .achievement-item, .industry-title, .industry-desc {
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 0 4px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Hero Section */
+    .subtitle-yellow {
+      color: var(--accent-yellow);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 4.2rem;
+      line-height: 1.02;
+      color: #FFFFFF;
+      margin-bottom: 1.75rem;
+      letter-spacing: -1.5px;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem 1.75rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 0.9rem;
+      color: #F3F4F6;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+      transition: color 0.2s ease;
+    }
+
+    a.contact-item:hover {
+      color: var(--accent-yellow);
+    }
+
+    .contact-icon {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent-yellow);
+      stroke-width: 2;
+      fill: none;
+      flex-shrink: 0;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    }
+
+    /* Headings */
+    .section-heading-yellow {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      margin-bottom: 1.25rem;
+    }
+
+    /* About Section */
+    .about-text {
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: #F3F4F6;
+      margin-bottom: 1.5rem;
+    }
+
+    /* 3:4 Aspect Ratio Video Carousel */
+    .carousel-container {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .video-carousel {
+      display: flex;
+      gap: 1.25rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 0.5rem 0.25rem 1.5rem;
+      width: 100%;
+      scrollbar-width: none;
+    }
+
+    .video-carousel::-webkit-scrollbar {
+      display: none;
+    }
+
+    .video-card {
+      flex: 0 0 calc(50% - 0.625rem);
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      cursor: pointer;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3 / 4; /* Aspect Ratio 3:4 */
+      border-radius: 22px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .video-card:hover .video-wrapper {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--accent-yellow);
+      box-shadow: 0 20px 45px rgba(245, 158, 11, 0.4);
+    }
+
+    .hover-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Carousel Arrow Nav Buttons */
+    .carousel-btn {
+      position: absolute;
+      top: 45%;
+      transform: translateY(-50%);
+      z-index: 20;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .carousel-btn:hover {
+      background: var(--accent-yellow);
+      color: #000000;
+      border-color: #FBBF24;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .carousel-btn.prev-btn { left: -18px; }
+    .carousel-btn.next-btn { right: -18px; }
+
+    .carousel-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.5;
+    }
+
+    /* Sound Badge */
+    .sound-badge {
+      position: absolute;
+      bottom: 0.85rem;
+      left: 0.85rem;
+      right: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.75rem;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 100px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #FFFFFF;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    .video-card:hover .sound-badge, .video-card.playing .sound-badge {
+      background: var(--accent-yellow);
+      color: #000000;
+      border-color: #FBBF24;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+    }
+
+    .speaker-icon {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      flex-shrink: 0;
+    }
+
+    .video-info {
+      padding: 0 0.25rem;
+    }
+
+    .video-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+      margin-bottom: 0.2rem;
+    }
+
+    .video-tag {
+      font-size: 0.8rem;
+      color: var(--accent-yellow);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    }
+
+    /* Tools Grid */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .tool-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: #E5E7EB;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+      text-align: center;
+    }
+
+    .tool-icon-box {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      font-weight: 800;
+      font-family: var(--font-display);
+    }
+
+    .tool-item:hover .tool-icon-box {
+      transform: translateY(-4px);
+      background: rgba(0, 0, 0, 0.7);
+      border-color: var(--accent-yellow);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .tool-icon-box svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    /* Languages List */
+    .languages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .lang-item {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .lang-name {
+      width: 80px;
+      font-size: 0.9rem;
+      color: #FFFFFF;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    }
+
+    .bar-bg {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent-yellow);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+
+    /* Achievements List */
+    .achievements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .achievement-item {
+      position: relative;
+      padding-left: 1.5rem;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #F3F4F6;
+    }
+
+    .achievement-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 7px;
+      height: 7px;
+      background-color: var(--accent-yellow);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-yellow);
+    }
+
+    /* Experience / Industries Grid */
+    .industries-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .industry-card {
+      padding: 1.25rem 1.4rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      transition: all 0.3s ease;
+    }
+
+    .industry-card:hover {
+      background: rgba(0, 0, 0, 0.65);
+      border-color: rgba(245, 158, 11, 0.5);
+      transform: translateX(4px);
+    }
+
+    .industry-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #FFFFFF;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .industry-title svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--accent-yellow);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .industry-desc {
+      font-size: 0.88rem;
+      color: #E5E7EB;
+      line-height: 1.55;
+    }
+
+    /* Education Box */
+    .edu-box {
+      margin-top: 1.5rem;
+      padding: 1.25rem 1.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 18px;
+    }
+
+    .edu-title-main {
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: #FFFFFF;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    }
+
+    .edu-sub {
+      font-size: 0.86rem;
+      color: var(--accent-yellow);
+      margin-top: 0.2rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+    }
+
+    /* Contact Action Buttons (Direct Connect) */
+    .contact-actions-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.75rem;
+      text-align: left;
+    }
+
+    .action-card-btn {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      padding: 1.1rem 1.4rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      text-decoration: none;
+      color: #FFFFFF;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .action-card-btn svg {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .action-card-btn .btn-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .action-card-btn .btn-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+      color: #D1D5DB;
+      transition: color 0.3s ease;
+    }
+
+    .action-card-btn .btn-val {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    /* Hover States for Contact Buttons */
+    .action-card-btn.email-btn:hover {
+      background: rgba(59, 130, 246, 0.3);
+      border-color: rgba(59, 130, 246, 0.7);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.35);
+    }
+    .action-card-btn.email-btn:hover .btn-label { color: #93C5FD; }
+
+    .action-card-btn.whatsapp-btn:hover {
+      background: rgba(37, 211, 102, 0.3);
+      border-color: rgba(37, 211, 102, 0.7);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(37, 211, 102, 0.35);
+    }
+    .action-card-btn.whatsapp-btn:hover .btn-label { color: #86EFAC; }
+
+    .action-card-btn.phone-btn:hover {
+      background: rgba(245, 158, 11, 0.3);
+      border-color: rgba(245, 158, 11, 0.7);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(245, 158, 11, 0.35);
+    }
+    .action-card-btn.phone-btn:hover .btn-label { color: #FDE047; }
+
+    @media (max-width: 768px) {
+      .top-bar {
+        padding: 0 1.25rem;
+      }
+      .main-container {
+        padding: 4.5rem 1rem 6rem;
+      }
+      .hero-title {
+        font-size: 3rem;
+      }
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+      .video-card {
+        flex: 0 0 85%;
+      }
+      .carousel-btn.prev-btn { left: -8px; }
+      .carousel-btn.next-btn { right: -8px; }
+      .tools-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .bottom-nav {
+        padding: 0.3rem;
+      }
+      .nav-item {
+        padding: 0.45rem 0.75rem;
+        font-size: 0.78rem;
+      }
+      .nav-item span {
+        display: none;
+      }
+      .nav-item.active span {
+        display: inline;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Readability Overlay -->
+  <div class="bg-overlay"></div>
+
+  <!-- Smooth Frame Animation Canvas -->
+  <div id="canvas-container">
+    <canvas id="scroll-canvas"></canvas>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="top-bar">
+    <div class="badge-open">
+      <span class="dot-green"></span>
+      <span>Open to work</span>
+    </div>
+    <!-- Direct WhatsApp Link on Get In Touch -->
+    <a href="https://wa.me/201016424548" target="_blank" rel="noopener noreferrer" class="btn-download">Get In Touch</a>
+  </header>
+
+  <!-- Bottom Floating Nav -->
+  <div class="bottom-nav-container">
+    <nav class="bottom-nav">
+      <a href="#home" class="nav-item active" data-section="home">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Home</span>
+      </a>
+      <a href="#about" class="nav-item" data-section="about">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>About</span>
+      </a>
+      <a href="#portfolio" class="nav-item" data-section="portfolio">
+        <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+        <span>Works</span>
+      </a>
+      <a href="#achievements" class="nav-item" data-section="achievements">
+        <svg viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+        <span>Achievements</span>
+      </a>
+      <a href="#experience" class="nav-item" data-section="experience">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        <span>Experience</span>
+      </a>
+      <a href="#contact" class="nav-item" data-section="contact">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        <span>Contact</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Stacked Content Container -->
+  <main class="main-container">
+
+    <!-- Section 1: Hero -->
+    <div id="home" class="content-block">
+      <div class="subtitle-yellow">Video Editing · Motion Design · AI Content</div>
+      <h1 class="hero-title">Seif Ed<br>Raafat</h1>
+      
+      <div class="contact-grid">
+        <a href="mailto:seif.raafat@gmail.com" class="contact-item" style="text-decoration: none;">
+          <svg class="contact-icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
+          <span>seif.raafat@gmail.com</span>
+        </a>
+        <a href="tel:+201016424548" class="contact-item" style="text-decoration: none;">
+          <svg class="contact-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          <span>+201016424548</span>
+        </a>
+        <div class="contact-item">
+          <svg class="contact-icon" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span>6th of October City, Giza, Egypt</span>
+        </div>
+        <div class="contact-item">
+          <svg class="contact-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>Arabic · English · French</span>
+        </div>
+      </div>
+
+      <div class="edu-box">
+        <div class="edu-title-main">Faculty of Mass Communication</div>
+        <div class="edu-sub">6th of October University — Class of 2024</div>
+      </div>
+    </div>
+
+    <!-- Section 2: About -->
+    <div id="about" class="content-block">
+      <h2 class="section-heading-yellow">About Me</h2>
+      <p class="about-text">
+        I'm a video editor and motion designer with 7 years of experience. I work across editing, motion graphics, 3D, direction, photography, and content creation — using Premiere Pro and After Effects as my main tools, with Blender for 3D, and AI tools for design and video production where I'm already hitting a strong level. I hold my work to a high standard, my ideas are bold by design, and I don't dress up bad work as good — including my own. I'm always learning, always pushing further.
+      </p>
+
+      <h3 class="section-heading-yellow" style="font-size: 1.1rem; margin-top: 1.5rem;">Core Stack & Tools</h3>
+      <div class="tools-grid">
+        <div class="tool-item">
+          <div class="tool-icon-box" style="color: #9999FF; background: rgba(0, 0, 91, 0.6); border-color: rgba(153, 153, 255, 0.4);">
+            Pr
+          </div>
+          <span>Premiere Pro</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon-box" style="color: #9999FF; background: rgba(0, 0, 91, 0.6); border-color: rgba(153, 153, 255, 0.4);">
+            Ae
+          </div>
+          <span>After Effects</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon-box">
+            <svg viewBox="0 0 24 24" fill="#EA7600"><path d="M12.5 2a10 10 0 0 0-9.8 12.1 10 10 0 0 0 16.2 4.4 10 10 0 0 0-6.4-16.5zm-3 4a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm5 9.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+          </div>
+          <span>Blender 3D</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon-box" style="color: #31A8FF; background: rgba(0, 30, 54, 0.6); border-color: rgba(49, 168, 255, 0.4);">
+            Ps
+          </div>
+          <span>Photoshop</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-icon-box" style="color: var(--accent-yellow);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+          </div>
+          <span>AI Tools</span>
+        </div>
+      </div>
+
+      <h3 class="section-heading-yellow" style="font-size: 1.1rem; margin-top: 1.5rem;">Languages</h3>
+      <div class="languages-list">
+        <div class="lang-item">
+          <span class="lang-name">Arabic</span>
+          <div class="bar-bg"><div class="bar-fill" style="width: 100%;"></div></div>
+        </div>
+        <div class="lang-item">
+          <span class="lang-name">English</span>
+          <div class="bar-bg"><div class="bar-fill" style="width: 90%;"></div></div>
+        </div>
+        <div class="lang-item">
+          <span class="lang-name">French</span>
+          <div class="bar-bg"><div class="bar-fill" style="width: 75%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Featured Video Carousel (3:4 Ratio & Hover Play Sound) -->
+    <div id="portfolio" class="content-block">
+      <h2 class="section-heading-yellow">Featured Video Works</h2>
+      <p class="about-text" style="margin-bottom: 1rem;">Hover over any video to auto-play with audio:</p>
+      
+      <div class="carousel-container">
+        <!-- Previous Arrow Button -->
+        <button class="carousel-btn prev-btn" aria-label="Previous Video">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+
+        <!-- 3:4 Aspect Ratio Video Carousel -->
+        <div class="video-carousel" id="videoCarousel">
+          
+          <!-- Video Card 1 -->
+          <div class="video-card">
+            <div class="video-wrapper">
+              <video class="hover-video" preload="metadata" playsinline loop muted>
+                <source src="./videos/AI-NIKE 2.mp4" type="video/mp4">
+              </video>
+              <div class="sound-badge">
+                <svg class="speaker-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Hover for Sound</span>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">AI Nike Commercial</h3>
+              <span class="video-tag">AI Content · Direction</span>
+            </div>
+          </div>
+
+          <!-- Video Card 2 -->
+          <div class="video-card">
+            <div class="video-wrapper">
+              <video class="hover-video" preload="metadata" playsinline loop muted>
+                <source src="./videos/FASHION-4.mp4" type="video/mp4">
+              </video>
+              <div class="sound-badge">
+                <svg class="speaker-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Hover for Sound</span>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">Fashion Campaign Reel</h3>
+              <span class="video-tag">Fashion · Editing</span>
+            </div>
+          </div>
+
+          <!-- Video Card 3 -->
+          <div class="video-card">
+            <div class="video-wrapper">
+              <video class="hover-video" preload="metadata" playsinline loop muted>
+                <source src="./videos/cgi.mp4" type="video/mp4">
+              </video>
+              <div class="sound-badge">
+                <svg class="speaker-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Hover for Sound</span>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">3D & CGI Motion Graphics</h3>
+              <span class="video-tag">Blender 3D · Visual FX</span>
+            </div>
+          </div>
+
+          <!-- Video Card 4 -->
+          <div class="video-card">
+            <div class="video-wrapper">
+              <video class="hover-video" preload="metadata" playsinline loop muted>
+                <source src="./videos/V5.mp4" type="video/mp4">
+              </video>
+              <div class="sound-badge">
+                <svg class="speaker-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Hover for Sound</span>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">Cinematic Showreel</h3>
+              <span class="video-tag">Full Production · Direction</span>
+            </div>
+          </div>
+
+          <!-- Video Card 5 -->
+          <div class="video-card">
+            <div class="video-wrapper">
+              <video class="hover-video" preload="metadata" playsinline loop muted>
+                <source src="./videos/WhatsApp Video 2025-09-27 at 14.24.43_94b6dee5.mp4" type="video/mp4">
+              </video>
+              <div class="sound-badge">
+                <svg class="speaker-icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                <span>Hover for Sound</span>
+              </div>
+            </div>
+            <div class="video-info">
+              <h3 class="video-title">Brand & Social Promo</h3>
+              <span class="video-tag">Promo · Social Campaign</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Next Arrow Button -->
+        <button class="carousel-btn next-btn" aria-label="Next Video">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Section 4: Achievements -->
+    <div id="achievements" class="content-block">
+      <h2 class="section-heading-yellow">Key Achievements</h2>
+      
+      <div class="achievements-list">
+        <div class="achievement-item">
+          <strong>7 years of hands-on experience</strong> across video editing, motion graphics, 3D, and content creation.
+        </div>
+        <div class="achievement-item">
+          Worked across <strong>10+ industries</strong> including healthcare, real estate, fashion, F&B, and entertainment.
+        </div>
+        <div class="achievement-item">
+          Delivered <strong>end-to-end productions</strong> — from initial concept and creative direction to editing and final delivery.
+        </div>
+        <div class="achievement-item">
+          Built complete <strong>brand content libraries</strong> for recruitment, healthcare, and lifestyle clients.
+        </div>
+        <div class="achievement-item">
+          Produced <strong>AI-generated video & design work</strong> at a professional commercial level.
+        </div>
+        <div class="achievement-item">
+          Fluent in <strong>Arabic, English, and French</strong> — serving both local and international clients smoothly.
+        </div>
+        <div class="achievement-item">
+          <strong>Constantly evolving</strong> — currently mastering cutting-edge AI tools for design and video alongside traditional craft.
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Industry Experience -->
+    <div id="experience" class="content-block">
+      <h2 class="section-heading-yellow">Industry Experience</h2>
+      
+      <div class="industries-grid">
+        
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+            Restaurants & F&B
+          </div>
+          <div class="industry-desc">Promotional videos, social media content, and reels capturing atmosphere, product, and brand identity.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            Events
+          </div>
+          <div class="industry-desc">Full event coverage and highlight reels, from corporate gatherings to social events, with fast turnaround and cinematic quality.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            Makeup & Beauty Brands
+          </div>
+          <div class="industry-desc">Product videos, tutorial-style content, and high-impact social campaigns.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+            Fashion
+          </div>
+          <div class="industry-desc">Lookbooks, campaign videos, and dynamic reels for fashion brands and stylists.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            Decor & Interior Design
+          </div>
+          <div class="industry-desc">Visual content showcasing spaces and products with meticulous attention to light, texture, and atmosphere.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="6" x2="9.01" y2="6"></line><line x1="15" y1="6" x2="15.01" y2="6"></line><line x1="9" y1="10" x2="9.01" y2="10"></line><line x1="15" y1="10" x2="15.01" y2="10"></line><line x1="9" y1="14" x2="9.01" y2="14"></line><line x1="15" y1="14" x2="15.01" y2="14"></line><line x1="9" y1="18" x2="15" y2="18"></line></svg>
+            Real Estate
+          </div>
+          <div class="industry-desc">Property showcase videos and architectural visualization content.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            Dermatology & Cosmetic Clinics
+          </div>
+          <div class="industry-desc">Before/after treatment visuals, procedure content, creative reveal concepts, and ongoing social media content.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><path d="m6.5 6.5 11 11"></path><path d="m21 21-1-1"></path><path d="m3 3 1 1"></path><path d="m18 22 4-4"></path><path d="m2 6 4-4"></path><path d="m3 10 7-7"></path><path d="m14 21 7-7"></path></svg>
+            Gyms & Fitness
+          </div>
+          <div class="industry-desc">Motivational and promotional content for gym brands and personal trainers.</div>
+        </div>
+
+        <div class="industry-card">
+          <div class="industry-title">
+            <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+            Bloggers & Influencers
+          </div>
+          <div class="industry-desc">Content production, editing, and visual direction for personal brands and content creators.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Section 6: Let's Create (Direct Action Buttons) -->
+    <div id="contact" class="content-block">
+      <h2 class="hero-title" style="font-size: 2.8rem; margin-bottom: 0.5rem;">Let's Create</h2>
+      <p class="about-text" style="margin-bottom: 1.5rem;">Click any option below to connect with me directly:</p>
+      
+      <div class="contact-actions-grid">
+        <!-- Direct Email Link -->
+        <a href="mailto:seif.raafat@gmail.com" class="action-card-btn email-btn">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+          <div class="btn-text">
+            <span class="btn-label">Send Email</span>
+            <span class="btn-val">seif.raafat@gmail.com</span>
+          </div>
+        </a>
+
+        <!-- Direct WhatsApp Link -->
+        <a href="https://wa.me/201016424548" target="_blank" rel="noopener noreferrer" class="action-card-btn whatsapp-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.572-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662a11.87 11.87 0 0 0 5.707 1.456h.005c6.554 0 11.89-5.335 11.893-11.893 0-3.177-1.238-6.163-3.486-8.411"/></svg>
+          <div class="btn-text">
+            <span class="btn-label">WhatsApp Chat</span>
+            <span class="btn-val">+20 101 642 4548</span>
+          </div>
+        </a>
+
+        <!-- Direct Phone Call Link -->
+        <a href="tel:+201016424548" class="action-card-btn phone-btn">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+          <div class="btn-text">
+            <span class="btn-label">Direct Phone Call</span>
+            <span class="btn-val">+20 101 642 4548</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Frame Scroll Animation Script & Carousel Logic -->
+  <script>
+    const frameCount = 130;
+    const currentFrame = i => `./images/ezgif-frame-${i.toString().padStart(3, '0')}.jpg`;
+
+    const canvas = document.getElementById("scroll-canvas");
+    const context = canvas.getContext("2d");
+    const images = [];
+
+    // Preload image sequence
+    for (let i = 1; i <= frameCount; i++) {
+      const img = new Image();
+      img.src = currentFrame(i);
+      if (i === 1) {
+        img.onload = () => {
+          resizeCanvas();
+        };
+      }
+      images.push(img);
+    }
+
+    // High-DPI Responsive Canvas Scaling
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      render();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+
+    // Scroll & Smooth Animation State (Lerp)
+    let targetFrame = 0;
+    let smoothFrame = 0;
+
+    function updateTargetFrame() {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollFraction = maxScroll > 0 ? Math.max(0, Math.min(1, window.scrollY / maxScroll)) : 0;
+      targetFrame = scrollFraction * (frameCount - 1);
+      updateNavHighlight();
+    }
+
+    window.addEventListener("scroll", updateTargetFrame, { passive: true });
+
+    function drawFrame(frameIndex) {
+      const img = images[frameIndex];
+      if (!img || !img.complete || img.naturalWidth === 0) return;
+
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      // Aspect Ratio Cover Logic
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
+      const imgRatio = imgWidth / imgHeight;
+      const canvasRatio = canvasWidth / canvasHeight;
+
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (canvasRatio > imgRatio) {
+        drawWidth = canvasWidth;
+        drawHeight = canvasWidth / imgRatio;
+        offsetX = 0;
+        offsetY = (canvasHeight - drawHeight) / 2;
+      } else {
+        drawWidth = canvasHeight * imgRatio;
+        drawHeight = canvasHeight;
+        offsetX = (canvasWidth - drawWidth) / 2;
+        offsetY = 0;
+      }
+
+      context.clearRect(0, 0, canvasWidth, canvasHeight);
+      context.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+    }
+
+    function render() {
+      const roundedFrame = Math.min(frameCount - 1, Math.max(0, Math.round(smoothFrame)));
+      drawFrame(roundedFrame);
+    }
+
+    function animate() {
+      // Silky linear interpolation (lerp)
+      const diff = targetFrame - smoothFrame;
+      if (Math.abs(diff) > 0.001) {
+        smoothFrame += diff * 0.12;
+        render();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // Video Carousel Control Script
+    const carousel = document.getElementById("videoCarousel");
+    const prevBtn = document.querySelector(".prev-btn");
+    const nextBtn = document.querySelector(".next-btn");
+
+    if (carousel && prevBtn && nextBtn) {
+      prevBtn.addEventListener("click", () => {
+        carousel.scrollBy({ left: -320, behavior: "smooth" });
+      });
+      nextBtn.addEventListener("click", () => {
+        carousel.scrollBy({ left: 320, behavior: "smooth" });
+      });
+    }
+
+    // Video Hover-Play with Audio Script
+    const videoCards = document.querySelectorAll(".video-card");
+
+    videoCards.forEach(card => {
+      const video = card.querySelector(".hover-video");
+      const badgeText = card.querySelector(".sound-badge span");
+
+      card.addEventListener("mouseenter", async () => {
+        try {
+          video.muted = false;
+          video.volume = 1;
+          await video.play();
+          card.classList.add("playing");
+          if (badgeText) badgeText.textContent = "Playing with Audio 🔊";
+        } catch (e) {
+          // Fallback if browser requires touch/click before unmuted audio
+          video.muted = true;
+          await video.play();
+          card.classList.add("playing");
+          if (badgeText) badgeText.textContent = "Click for Audio 🔊";
+        }
+      });
+
+      card.addEventListener("mouseleave", () => {
+        video.pause();
+        video.muted = true;
+        card.classList.remove("playing");
+        if (badgeText) badgeText.textContent = "Hover for Sound";
+      });
+
+      card.addEventListener("click", async () => {
+        if (video.paused) {
+          video.muted = false;
+          video.volume = 1;
+          await video.play();
+          card.classList.add("playing");
+          if (badgeText) badgeText.textContent = "Playing with Audio 🔊";
+        } else if (video.muted) {
+          video.muted = false;
+          video.volume = 1;
+          if (badgeText) badgeText.textContent = "Playing with Audio 🔊";
+        }
+      });
+    });
+
+    // Scroll-Spy for Bottom Navigation Highlight
+    const blocks = document.querySelectorAll(".content-block");
+    const navItems = document.querySelectorAll(".nav-item");
+
+    function updateNavHighlight() {
+      let currentSectionId = "";
+      const scrollPos = window.scrollY + window.innerHeight / 3;
+
+      blocks.forEach(block => {
+        const top = block.offsetTop;
+        const height = block.offsetHeight;
+        if (scrollPos >= top - 80 && scrollPos < top + height) {
+          currentSectionId = block.getAttribute("id");
+        }
+      });
+
+      if (currentSectionId) {
+        navItems.forEach(item => {
+          if (item.getAttribute("data-section") === currentSectionId) {
+            item.classList.add("active");
+          } else {
+            item.classList.remove("active");
+          }
+        });
+      }
+    }
+
+    // Initial Setup
+    resizeCanvas();
+    updateTargetFrame();
+    animate();
+  </script>
+</body>
+</html>
